@@ -7,7 +7,7 @@ export function h(tag, attrs = {}, ...kids) {
   if (classes.length) el.className = classes.join(" ");
   for (const [k, v] of Object.entries(attrs || {})) {
     if (k.startsWith("on")) el.addEventListener(k.slice(2), v);
-    else if (k === "style") Object.assign(el.style, v);
+    else if (k === "style") for (const [p, val] of Object.entries(v)) p.startsWith("--") ? el.style.setProperty(p, val) : (el.style[p] = val);
     else el.setAttribute(k, v);
   }
   for (const k of kids.flat()) if (k != null) el.append(k);

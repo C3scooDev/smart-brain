@@ -1,123 +1,187 @@
-import { h, s, sleep } from "../util.js";
+import { h, sleep } from "../util.js";
 
-const W = 1000, LEVEL_Y = [50, 185, 320, 455];
-const LEVEL_NAME = ["brain", "sintesi di sintesi", "sintesi", "documento"];
-const TAGS = [
-  { k: "fine-mese", color: "#e8b86b", cyclic: true },
-  { k: "trimestrale", color: "#7fb7e8", cyclic: true },
-  { k: "onboarding", color: "#d996c8", cyclic: false },
+const TYPES = [
+  { k: "semantica", color: "#7fb7e8", angle: 0 },
+  { k: "logica", color: "#e8b86b", angle: -0.75 },
+  { k: "topologica", color: "#9fd18b", angle: 0.75 },
+  { k: "temporale", color: "#d996c8", angle: 2.4 },
 ];
-const FOCUS_W = 36, CONE_STEP = 150;
+const STEP = 5;          // nodes read per frame, same for both searches
+const MS_PER_NODE = 4;   // simulated reading cost
 
-// A 4-level tree, 4 children per node: 1 + 4 + 16 + 64 nodes.
-function buildTree() {
+// Seeded random so every visitor sees the same brain.
+function rng(seed) {
+  return () => ((seed = (seed * 1664525 + 1013904223) >>> 0) / 2 ** 32);
+}
+
+// A radial neuron mass: 6 trunks from the centre, 3 children per node, 5 levels. Branches keep a dominant type.
+function buildNet() {
+  const rnd = rng(7);
   const nodes = [];
-  const add = (level, i, parent) => {
-    const n = 4 ** level;
-    const node = { level, i, parent, x: (i + 0.5) * (W / n), y: LEVEL_Y[level], kids: [], tags: new Set() };
-    nodes.push(node);
-    parent?.kids.push(node);
-    if (level < 3) for (let c = 0; c < 4; c++) add(level + 1, i * 4 + c, node);
-    return node;
+  const add = (parent, angle, depth, type) => {
+    const r = depth === 0 ? 0 : 0.1 + depth * 0.17 + (rnd() - 0.5) * 0.05;
+    const n = { x: Math.cos(angle) * r, y: Math.sin(angle) * r, depth, parent, kids: [], type, angle };
+    nodes.push(n);
+    parent?.kids.push(n);
+    if (depth < 5) {
+      const spread = [Math.PI * 2, 0.75, 0.38, 0.2, 0.1][depth];
+      const count = depth === 0 ? 6 : 3;
+      for (let i = 0; i < count; i++) {
+        const a = depth === 0 ? (i / 6) * Math.PI * 2 + 0.3 : angle + (i - 1) * spread + (rnd() - 0.5) * spread * 0.5;
+        const t = depth <= 1 ? TYPES[Math.floor(rnd() * 4)].k : rnd() < 0.72 ? type : TYPES[Math.floor(rnd() * 4)].k;
+        add(n, a, depth + 1, t);
+      }
+    }
+    return n;
   };
-  const rootNode = add(0, 0, null);
-  for (const n of nodes.filter((n) => n.level === 3)) {
-    const k = n.i;
-    if (k % 8 === 2 || k % 8 === 5) n.tags.add("fine-mese"); // the default focus, doc 27, has it
-    if (k % 16 === 9 || k % 16 === 13) n.tags.add("trimestrale");
-    if (k % 21 === 4) n.tags.add("onboarding");
-  }
-  const lift = (n) => { for (const c of n.kids) { lift(c); c.tags.forEach((t) => n.tags.add(t)); } };
-  lift(rootNode);
+  add(null, 0, 0, "semantica");
   return nodes;
+}
+
+const dist = (a, b) => Math.hypot(a.x - b.x, a.y - b.y);
+const neighbours = (n) => [...n.kids, ...(n.parent ? [n.parent] : [])];
+
+// Plans both searches for one query type: returns the order each one reads nodes in.
+function plan(nodes, type) {
+  const T = TYPES.find((t) => t.k === type);
+  const centre = { x: Math.cos(T.angle) * 0.55, y: Math.sin(T.angle) * 0.55 };
+  const lensR = 0.16;
+  const inLens = nodes.filter((n) => dist(n, centre) < lensR);
+  const lensSeq = inLens.filter((n) => n.type === type).sort((a, b) => dist(a, centre) - dist(b, centre));
+  const start = lensSeq[0] ?? inLens[0];
+
+  // Target: a same-type node a few hops from the coloured branch, outside the lens, so the lens must expand.
+  const hop = new Map([[start, 0]]);
+  const q = [start];
+  while (q.length) {
+    const n = q.shift();
+    for (const m of neighbours(n)) if (!hop.has(m)) { hop.set(m, hop.get(n) + 1); q.push(m); }
+  }
+  const target = nodes
+    .filter((n) => n.type === type && n.depth === 5 && dist(n, centre) > lensR && hop.get(n) >= 3 && hop.get(n) <= 5)
+    .sort((a, b) => hop.get(b) - hop.get(a) || dist(b, centre) - dist(a, centre))[0] ?? nodes.at(-1);
+
+  // Lens: read the coloured nodes in the lens, then expand from the coloured branch, same type first.
+  const seen = new Set(lensSeq);
+  const lens = [...lensSeq];
+  if (!seen.has(target)) {
+    const open = [[0, start]];
+    const cost = new Map([[start, 0]]);
+    while (open.length) {
+      open.sort((a, b) => a[0] - b[0]);
+      const [c, n] = open.shift();
+      if (!seen.has(n)) { seen.add(n); lens.push(n); }
+      if (n === target) break;
+      for (const m of neighbours(n)) {
+        const nc = c + (m.type === type ? 1 : 3);
+        if (nc < (cost.get(m) ?? Infinity)) { cost.set(m, nc); open.push([nc, m]); }
+      }
+    }
+  }
+  // Flat: read everything level by level from the centre until the target turns up.
+  const flat = [...nodes].sort((a, b) => a.depth - b.depth || a.angle - b.angle);
+  flat.length = flat.indexOf(target) + 1;
+  return { centre, lensR, lens, flat, target, start, color: T.color };
+}
+
+function panel(title) {
+  const canvas = h("canvas");
+  const read = h("b", {}, "0"), ms = h("b", {}, "0 ms");
+  const el = h("div.net", {}, h("div.net-head", {}, h("strong", {}, title)), canvas,
+    h("div.net-stats", {}, h("span", {}, h("span.dim", {}, "neuroni letti "), read), h("span", {}, h("span.dim", {}, "tempo "), ms)));
+  return { el, canvas, read, ms };
 }
 
 export default function lens(root) {
   const box = root.querySelector(".lens");
-  const nodes = buildTree();
-  const leaves = nodes.filter((n) => n.level === 3);
-  let focusLeaf = leaves[26], tag = null, ready = false;
-
-  const svg = s("svg", { viewBox: `0 0 ${W} 510`, class: "tree" });
-  const defs = s("defs");
-  const grad = s("linearGradient", { id: "cone", x1: 0, y1: 0, x2: 0, y2: 1 });
-  [[0, 0.04], [0.55, 0.22], [1, 0.06]].forEach(([o, a]) => grad.append(s("stop", { offset: o, "stop-color": "#d97757", "stop-opacity": a })));
-  defs.append(grad);
-  const cone = s("polygon", { fill: "url(#cone)", class: "cone" });
-  const edges = s("g"), dots = s("g");
-  const glass = s("g", { class: "glass" });
-  glass.append(s("circle", { r: 26, fill: "none", stroke: "#ecebe6", "stroke-width": 3 }),
-    s("line", { x1: 19, y1: 19, x2: 40, y2: 40, stroke: "#ecebe6", "stroke-width": 5, "stroke-linecap": "round" }));
-  svg.append(defs, cone, edges, dots, glass);
-  for (let l = 0; l < 4; l++) {
-    const t = s("text", { x: 6, y: LEVEL_Y[l] - 16, class: "lvl" });
-    t.textContent = `L${l} · ${LEVEL_NAME[l]}`;
-    svg.append(t);
-  }
-
-  for (const n of nodes) {
-    if (n.parent) {
-      n.edge = s("line", { x1: n.parent.x, y1: n.parent.y, x2: n.x, y2: n.y, class: "edge" });
-      edges.append(n.edge);
-    }
-    n.dot = s("circle", { cx: n.x, cy: n.y, r: [14, 10, 7, 5][n.level], class: "node" });
-    if (n.level === 3) n.dot.addEventListener("click", () => { focusLeaf = n; ready = true; update(); });
-    const title = s("title");
-    title.textContent = n.level === 3 ? `documento ${n.i + 1} ${[...n.tags].map((t) => "#" + t).join(" ")}` : `${LEVEL_NAME[n.level]} ${n.i + 1}`;
-    n.dot.append(title);
-    dots.append(n.dot);
-  }
-
+  const nodes = buildNet();
+  const left = panel("Ricerca piatta");
+  const right = panel("Lente + ramo colorato");
+  const verdict = h("div.verdict");
   const chips = h("div.tags");
-  const chipFor = (t) => h("button.tag", { type: "button", style: { "--c": t ? t.color : "#8b8a84" }, onclick: () => { tag = t; ready = true; update(); } },
-    t ? `#${t.k}${t.cyclic ? " ↻" : ""}` : "nessun tag");
-  [null, ...TAGS].forEach((t) => chips.append(chipFor(t)));
-  const info = h("div.lens-info");
-  box.append(h("div.tree-wrap", {}, svg), h("div.lens-side", {}, h("p.dim", {}, "Tocca un documento per spostare il focus. Scegli un tag per colorare uno schema."), chips, info));
+  TYPES.forEach((t) => chips.append(h("button.tag", { type: "button", style: { "--c": t.color }, onclick: () => run(t.k) }, `query ${t.k}`)));
+  box.append(h("div.lens-top", {}, h("span.dim", {}, "Tipo di query:"), chips), h("div.nets", {}, left.el, right.el), verdict);
 
-  const coneW = (level, focusLevel) => FOCUS_W + CONE_STEP * Math.abs(level - focusLevel);
-
-  function update() {
-    const focus = focusLeaf.parent;
-    const path = new Set();
-    for (let n = focusLeaf; n; n = n.parent) path.add(n);
-    const fx = focus.x;
-    const pts = [0, 1, 2, 3].map((l) => [coneW(l, 2), LEVEL_Y[l]]);
-    cone.setAttribute("points", [...pts.map(([w, y]) => `${fx - w},${y}`), ...pts.reverse().map(([w, y]) => `${fx + w},${y}`)].join(" "));
-    cone.style.opacity = ready ? 1 : 0;
-    glass.setAttribute("transform", `translate(${focus.x},${focus.y})`);
-    glass.style.opacity = ready ? 1 : 0;
-
-    for (const n of nodes) {
-      const inCone = Math.max(0, 1 - Math.abs(n.x - fx) / coneW(n.level, 2));
-      const has = tag && n.tags.has(tag.k);
-      let k = path.has(n) ? 1 : inCone * 0.85;
-      if (tag && !path.has(n)) k *= has ? 1.6 : 0.3;
-      if (!ready) k = 0.5;
-      n.dot.style.opacity = Math.max(0.08, Math.min(1, k)).toFixed(2);
-      n.dot.style.fill = path.has(n) && ready ? "#d97757" : has ? tag.color : "#ecebe6";
-      n.dot.classList.toggle("tagged", !!has);
-      if (n.edge) {
-        n.edge.classList.toggle("on", ready && path.has(n));
-        n.edge.style.opacity = ready && path.has(n) ? 1 : Math.max(0.06, k * 0.5).toFixed(2);
-      }
+  let token = 0;
+  function draw(p, cv, readSet, lensState, done) {
+    const dpr = window.devicePixelRatio || 1;
+    const size = cv.clientWidth;
+    if (cv.width !== size * dpr) { cv.width = size * dpr; cv.height = size * dpr; }
+    const g = cv.getContext("2d");
+    g.setTransform(dpr, 0, 0, dpr, 0, 0);
+    g.clearRect(0, 0, size, size);
+    const S = size / 2.15, X = (n) => size / 2 + n.x * S, Y = (n) => size / 2 + n.y * S;
+    g.lineWidth = 0.6;
+    for (const n of nodes) if (n.parent) {
+      g.strokeStyle = readSet.has(n) ? "rgba(217,119,87,.55)" : "rgba(236,235,230,.07)";
+      g.beginPath(); g.moveTo(X(n.parent), Y(n.parent)); g.lineTo(X(n), Y(n)); g.stroke();
     }
-    const inside = leaves.filter((l) => Math.abs(l.x - fx) < coneW(3, 2) && (!tag || l.tags.has(tag.k)));
-    info.replaceChildren(
-      h("div.row", {}, h("span.dim", {}, "strada utile"), h("code", {}, `brain › ${focus.parent.i + 1} › ${focus.i + 1} › doc ${focusLeaf.i + 1}`)),
-      h("div.row", {}, h("span.dim", {}, "lente su"), h("span", {}, `sintesi ${focus.i + 1} (L2)`)),
-      h("div.row", {}, h("span.dim", {}, "nel cono"), h("span", {}, `${inside.length} documenti su 64${tag ? ` con #${tag.k}` : ""}`)),
-      h("div.row", {}, h("span.dim", {}, "contesto letto"), h("span.big", {}, `${Math.round((inside.length / 64) * 100)}%`)));
+    for (const n of nodes) {
+      const t = TYPES.find((t) => t.k === n.type);
+      const on = readSet.has(n);
+      g.globalAlpha = on ? 1 : 0.28;
+      g.fillStyle = t.color;
+      g.beginPath(); g.arc(X(n), Y(n), on ? 3 : 1.8, 0, 7); g.fill();
+    }
+    g.globalAlpha = 1;
+    if (lensState) {
+      const { cx, cy, r } = lensState;
+      g.strokeStyle = "#ecebe6"; g.lineWidth = 2.5;
+      g.beginPath(); g.arc(size / 2 + cx * S, size / 2 + cy * S, r * S, 0, 7); g.stroke();
+      const hx = size / 2 + (cx + r * 0.72) * S, hy = size / 2 + (cy + r * 0.72) * S;
+      g.lineWidth = 5; g.lineCap = "round";
+      g.beginPath(); g.moveTo(hx, hy); g.lineTo(hx + 18, hy + 18); g.stroke();
+    }
+    if (done) {
+      g.strokeStyle = "#d97757"; g.lineWidth = 2.5;
+      g.beginPath();
+      for (let n = p.target; n; n = n.parent) n === p.target ? g.moveTo(X(n), Y(n)) : g.lineTo(X(n), Y(n));
+      g.stroke();
+      g.fillStyle = "#fff"; g.beginPath(); g.arc(X(p.target), Y(p.target), 6, 0, 7); g.fill();
+    }
   }
 
-  update();
+  async function run(type) {
+    const my = ++token;
+    chips.querySelectorAll("button").forEach((b) => b.classList.toggle("on", b.textContent.endsWith(type)));
+    const p = plan(nodes, type);
+    verdict.replaceChildren(h("span.dim", {}, `Cerco un'informazione ${type}...`));
+    const flatSet = new Set(), lensSet = new Set();
+    let fi = 0, li = 0, frame = 0, lensDone = false, flatDone = false;
+    const MOVE = 35;
+    await new Promise((resolve) => {
+      const tick = () => {
+        if (my !== token) return resolve();
+        frame++;
+        for (let k = 0; k < STEP && fi < p.flat.length; k++) flatSet.add(p.flat[fi++]);
+        const t = Math.min(1, frame / MOVE);
+        let lensState = { cx: p.centre.x * t, cy: p.centre.y * t, r: p.lensR };
+        if (t >= 1) {
+          for (let k = 0; k < STEP && li < p.lens.length; k++) lensSet.add(p.lens[li++]);
+          const reach = Math.max(p.lensR, ...[...lensSet].map((n) => dist(n, p.centre) + 0.03));
+          lensState = { cx: p.centre.x, cy: p.centre.y, r: reach };
+        }
+        lensDone = li >= p.lens.length; flatDone = fi >= p.flat.length;
+        draw(p, left.canvas, flatSet, null, flatDone);
+        draw(p, right.canvas, lensSet, lensState, lensDone);
+        left.read.textContent = flatSet.size; left.ms.textContent = `${flatSet.size * MS_PER_NODE} ms`;
+        right.read.textContent = lensSet.size; right.ms.textContent = `${(lensSet.size + MOVE / STEP) * MS_PER_NODE | 0} ms`;
+        if (lensDone && flatDone) return resolve();
+        requestAnimationFrame(tick);
+      };
+      requestAnimationFrame(tick);
+    });
+    if (my !== token) return;
+    const x = (p.flat.length / (p.lens.length + MOVE / STEP)).toFixed(1);
+    verdict.replaceChildren(
+      h("span", {}, h("b.big", {}, `×${x}`), " più veloce. "),
+      h("span.dim", {}, `La lente legge ${p.lens.length} neuroni su ${nodes.length}, la ricerca piatta ${p.flat.length}. Simulazione sullo stesso brain, stesso costo per neurone.`));
+  }
+
+  requestAnimationFrame(() => { draw(null, left.canvas, new Set(), null, false); draw(null, right.canvas, new Set(), null, false); });
   return async () => {
-    await sleep(500);
-    ready = true;
-    focusLeaf = leaves[26];
-    update();
-    await sleep(2200);
-    tag = TAGS[0];
-    update();
+    await run("semantica");
+    await sleep(1500);
+    if (token === 1) await run("topologica");
   };
 }

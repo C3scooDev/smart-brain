@@ -5,10 +5,11 @@ import brains from "./scenes/brains.js";
 import lens from "./scenes/lens.js";
 import search from "./scenes/search.js";
 import hungry from "./scenes/hungry.js";
+import models from "./scenes/models.js";
 import perf from "./scenes/perf.js";
 import choices from "./scenes/choices.js";
 
-const modules = { hero, problems, channels, brains, lens, search, hungry, perf, choices };
+const modules = { hero, problems, channels, brains, lens, search, hungry, models, perf, choices };
 const scenes = [...document.querySelectorAll(".scene")];
 const nav = document.getElementById("nav");
 
