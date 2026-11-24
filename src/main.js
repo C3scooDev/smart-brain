@@ -8,11 +8,14 @@ import hungry from "./scenes/hungry.js";
 import usecases from "./scenes/usecases.js";
 import tryit from "./scenes/tryit.js";
 import growth from "./scenes/growth.js";
+import example from "./scenes/example.js";
+import stack from "./scenes/stack.js";
+import cost from "./scenes/cost.js";
 import models from "./scenes/models.js";
 import perf from "./scenes/perf.js";
 import choices from "./scenes/choices.js";
 
-const modules = { hero, problems, channels, usecases, brains, lens, search, tryit, hungry, growth, models, perf, choices };
+const modules = { hero, problems, channels, usecases, brains, lens, example, search, tryit, hungry, growth, stack, models, cost, perf, choices };
 const scenes = [...document.querySelectorAll(".scene")];
 const nav = document.getElementById("nav");
 
