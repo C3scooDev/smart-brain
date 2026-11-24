@@ -462,3 +462,28 @@ h3 { font-size: 1rem; margin-bottom: .8rem; }
 @media (max-width: 760px) {
   .stacks, .charts, .stack-flow, .sliders, .cost-out { grid-template-columns: minmax(0, 1fr); }
 }
+
+/* roadmap */
+.roadmap { width: 100%; display: flex; flex-direction: column; gap: 18px; }
+.rm-track { position: relative; height: 4px; background: var(--line); border-radius: 2px; margin: 10px 16.6%; }
+.rm-fill { position: absolute; left: 0; top: 0; bottom: 0; width: 0; background: var(--accent); border-radius: 2px; transition: width 1.2s ease; }
+.rm-track .dot { position: absolute; top: -6px; width: 16px; height: 16px; border-radius: 50%; background: var(--bg); border: 3px solid var(--accent); transform: translateX(-50%); }
+.rm-track .d0 { left: 0; } .rm-track .d1 { left: 50%; } .rm-track .d2 { left: 100%; }
+.rm-cols { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 12px; }
+.rm-col { background: var(--panel); border: 1px solid var(--line); border-radius: 12px; padding: 16px; display: flex; flex-direction: column; gap: 8px; transition: border-color .5s, transform .5s; }
+.rm-col.next { border-color: var(--accent); transform: translateY(-4px); }
+.rm-when { font-family: var(--mono); font-size: .8rem; color: var(--accent); display: flex; gap: 8px; align-items: center; }
+.mark { background: var(--accent); color: var(--bg); border-radius: 4px; padding: 1px 6px; font-weight: 700; }
+.rm-col h3 { margin: 0; }
+.rm-tag { align-self: flex-start; font-size: .72rem; font-family: var(--mono); border: 1px solid var(--line); border-radius: 999px; padding: 2px 8px; color: var(--muted); }
+.todos { list-style: none; padding: 0; display: flex; flex-direction: column; gap: 8px; font-size: .88rem; }
+.todos li { display: flex; gap: 8px; align-items: flex-start; color: var(--muted); }
+.todos .box { flex: none; width: 16px; height: 16px; margin-top: 2px; border: 1.5px solid var(--muted); border-radius: 4px; display: grid; place-items: center; font-size: .7rem; transition: all .3s; }
+.todos li.checked { color: var(--fg); }
+.todos li.checked .box { background: var(--ok); border-color: var(--ok); }
+.todos li.checked .box::after { content: "✓"; color: var(--bg); font-weight: 700; }
+.rm-col.next .todos li { color: var(--fg); }
+@media (max-width: 760px) {
+  .rm-cols { grid-template-columns: minmax(0, 1fr); }
+  .rm-track { display: none; }
+}

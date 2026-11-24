@@ -11,11 +11,12 @@ import growth from "./scenes/growth.js";
 import example from "./scenes/example.js";
 import stack from "./scenes/stack.js";
 import cost from "./scenes/cost.js";
+import roadmap from "./scenes/roadmap.js";
 import models from "./scenes/models.js";
 import perf from "./scenes/perf.js";
 import choices from "./scenes/choices.js";
 
-const modules = { hero, problems, channels, usecases, brains, lens, example, search, tryit, hungry, growth, stack, models, cost, perf, choices };
+const modules = { hero, problems, channels, usecases, brains, lens, example, search, tryit, hungry, growth, stack, models, cost, perf, choices, roadmap };
 const scenes = [...document.querySelectorAll(".scene")];
 const nav = document.getElementById("nav");
 
