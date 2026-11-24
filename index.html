@@ -4,23 +4,83 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>Smart Brain</title>
+  <meta name="description" content="Smart Brain, for smart people: second brain multipli, locali e ottimizzati.">
   <link rel="stylesheet" href="src/style.css">
 </head>
 <body>
   <nav class="nav" id="nav"></nav>
-  <main id="scenes">
-    <section class="scene hero" data-title="Intro">
+  <main>
+    <section class="scene hero" data-title="Intro" data-scene="hero">
       <div class="term">
         <div class="term-bar"><i></i><i></i><i></i><span>~/smart-brain</span></div>
-        <pre class="term-body" data-type="hero"></pre>
+        <pre class="term-body"></pre>
       </div>
-      <h1>Second brain multipli.<br><em>Locali, compatibili, ottimizzati.</em></h1>
+      <h1>Smart Brain<br><em>for smart people.</em></h1>
+      <p class="lead">Second brain multipli, locali, specializzati. Ti rispondono dove scrivi già.</p>
       <p class="hint">Scorri ↓</p>
     </section>
-    <section class="scene" data-title="Funzionalità"><h2>Funzionalità</h2><p class="todo">Contenuto da definire con Cesco.</p></section>
-    <section class="scene" data-title="Ottimizzazioni"><h2>Ottimizzazioni</h2><p class="todo">Contenuto da definire con Cesco.</p></section>
-    <section class="scene" data-title="Distribuzione"><h2>Distribuzione</h2><p class="todo">Contenuto da definire con Cesco.</p></section>
-    <section class="scene" data-title="Scelte"><h2>Scelte di implementazione</h2><p class="todo">Contenuto da definire con Cesco.</p></section>
+
+    <section class="scene" data-title="Il problema" data-scene="problems">
+      <p class="kicker">01 · Da dove partiamo</p>
+      <h2>L'LLM Wiki funziona. Fino a un certo punto.</h2>
+      <p class="lead">L'idea di Karpathy compila i documenti in pagine collegate. Cinque limiti la fermano. Tocca una carta per vedere la risposta di Smart Brain.</p>
+      <div class="cards"></div>
+      <p class="credit">Spunto: Simone Rizzo, «Non implementare un'LLM Wiki prima di aver visto questo video».</p>
+    </section>
+
+    <section class="scene" data-title="Canali" data-scene="channels">
+      <p class="kicker">02 · Distribuzione</p>
+      <h2>Nessuna app da installare. È già nella tua chat.</h2>
+      <p class="lead">WhatsApp, Telegram o mail. In privato o nel gruppo del team. Scegli un canale e fai una domanda.</p>
+      <div class="channels"></div>
+    </section>
+
+    <section class="scene" data-title="Cervelli" data-scene="brains">
+      <p class="kicker">03 · Cervelli specializzati</p>
+      <h2>Ogni dominio ha il suo cervello.</h2>
+      <p class="lead">Un solo agente scrive ogni brain, tutti possono leggerlo. Il ruolo decide cosa leggi. Chi è competente pesa di più. Tocca una persona.</p>
+      <div class="brains"></div>
+    </section>
+
+    <section class="scene" data-title="La lente" data-scene="lens">
+      <p class="kicker">04 · Il focus</p>
+      <h2>Il riassunto è una lente d'ingrandimento.</h2>
+      <p class="lead">Ogni livello di sintesi mette a fuoco una parte del brain. I tag colorano gli schemi che si ripetono. La strada che ti è già servita diventa l'asse, e il focus si allarga a cono sopra e sotto.</p>
+      <div class="lens"></div>
+    </section>
+
+    <section class="scene" data-title="Ricerca" data-scene="search">
+      <p class="kicker">05 · La ricerca</p>
+      <h2>Una domanda, tre ricerche, un solo ordine.</h2>
+      <p class="lead">Il motore è qmd, locale e open source. Ogni query diventa parole chiave, vettori e una risposta ipotetica. I risultati si fondono e un reranker li riordina.</p>
+      <div class="search"></div>
+    </section>
+
+    <section class="scene" data-title="Vorace" data-scene="hungry">
+      <p class="kicker">06 · Vorace di informazioni</p>
+      <h2>Mentre lavora, fa domande.</h2>
+      <p class="lead">Quando manca un pezzo, il brain lo chiede. Con una skill «grill me» costruisce la memoria insieme a te, domanda dopo domanda.</p>
+      <div class="hungry"></div>
+    </section>
+
+    <section class="scene" data-title="Prestazioni" data-scene="perf">
+      <p class="kicker">07 · Prestazioni</p>
+      <h2>Tutto locale. Tutto misurato.</h2>
+      <p class="lead">Un mini PC con APU AMD e 32 GB condivisi. Nessun dato esce, nessun costo per token.</p>
+      <div class="perf"></div>
+    </section>
+
+    <section class="scene" data-title="Scelte" data-scene="choices">
+      <p class="kicker">08 · Scelte di implementazione</p>
+      <h2>Meno pezzi, meno guasti.</h2>
+      <div class="choices"></div>
+    </section>
+
+    <section class="scene outro" data-title="Fine" data-scene="outro">
+      <h1>Smart Brain<br><em>for smart people.</em></h1>
+      <p class="lead">Locale. Specializzato. Vorace. Già nella tua chat.</p>
+      <a class="again" href="#top">↑ Ricomincia</a>
+    </section>
   </main>
   <script type="module" src="src/main.js"></script>
 </body>
