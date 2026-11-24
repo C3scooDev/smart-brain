@@ -3,8 +3,8 @@ import { h, sleep } from "../util.js";
 // where: which modes run this role on the local machine
 const MODELS = [
   { role: "Ragionamento", name: "Qwen 3.6 35B-A3B", spec: "MoE, 3B attivi · GGUF · 128k × 4 slot", stat: "24,2 GiB · 70 tok/s", cloud: "Claude / GPT via API", local: ["locale", "ibrido"] },
-  { role: "Visione", name: "D1", spec: "foto e documenti · doppia lettura con accordo", stat: "~2 GiB · ~1 s a foto", cloud: "modello cloud multimodale", local: ["locale", "ibrido"] },
-  { role: "Decisioni veloci", name: "Decision model", spec: "classificatore sì/no con confidenza calibrata", stat: "~0,3B · < 50 ms", cloud: null, local: ["locale", "ibrido", "cloud"] },
+  { role: "Visione", name: "D1", spec: "foto e documenti · doppia lettura con accordo", stat: "~2 GiB · ~1 s a foto *", cloud: "modello cloud multimodale", local: ["locale", "ibrido"] },
+  { role: "Decisioni veloci", name: "Decision model", spec: "classificatore sì/no con confidenza calibrata", stat: "~0,3B · < 50 ms *", cloud: null, local: ["locale", "ibrido", "cloud"] },
   { role: "Embedding", name: "embeddinggemma 300M", spec: "Q8_0 · vettori per qmd", stat: "~300 MB", cloud: null, local: ["locale", "ibrido", "cloud"] },
   { role: "Rerank", name: "qwen3-reranker 0.6B", spec: "Q8_0 · riordina i 30 migliori", stat: "~640 MB", cloud: null, local: ["locale", "ibrido", "cloud"] },
   { role: "Espansione query", name: "qmd-query-expansion 1.7B", spec: "Q4_K_M · scrive lex, vec, hyde", stat: "~1,1 GB", cloud: null, local: ["locale", "ibrido", "cloud"] },
@@ -41,7 +41,7 @@ export default function models(root) {
   const lanes = { locale: h("div.bucket", {}, h("b", {}, "locale")), cloud: h("div.bucket", {}, h("b", {}, "cloud")) };
   const router = h("div.router", {}, h("div.dm", {}, "decision model"), h("div.buckets", {}, lanes.locale, lanes.cloud));
   for (const k of Object.keys(MODES)) tabs.append(h("button", { type: "button", "data-k": k, onclick: () => set(k) }, k[0].toUpperCase() + k.slice(1)));
-  box.append(tabs, desc, grid, router);
+  box.append(tabs, desc, grid, router, h("p.foot", {}, "* valori illustrativi. Gli altri sono misurati sullo stack reale."));
 
   function set(k) {
     mode = k;

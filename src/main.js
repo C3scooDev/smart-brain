@@ -5,11 +5,14 @@ import brains from "./scenes/brains.js";
 import lens from "./scenes/lens.js";
 import search from "./scenes/search.js";
 import hungry from "./scenes/hungry.js";
+import usecases from "./scenes/usecases.js";
+import tryit from "./scenes/tryit.js";
+import growth from "./scenes/growth.js";
 import models from "./scenes/models.js";
 import perf from "./scenes/perf.js";
 import choices from "./scenes/choices.js";
 
-const modules = { hero, problems, channels, brains, lens, search, hungry, models, perf, choices };
+const modules = { hero, problems, channels, usecases, brains, lens, search, tryit, hungry, growth, models, perf, choices };
 const scenes = [...document.querySelectorAll(".scene")];
 const nav = document.getElementById("nav");
 
@@ -21,6 +24,7 @@ scenes.forEach((s, i) => {
   a.setAttribute("aria-label", s.dataset.title);
   nav.append(a);
 });
+document.querySelectorAll(".kicker").forEach((k, i) => { k.textContent = `${String(i + 1).padStart(2, "0")} · ${k.textContent}`; });
 document.querySelector(".again")?.setAttribute("href", `#${scenes[0].id}`);
 
 // Each scene module builds its DOM once and returns a play() run every time the scene comes into view.

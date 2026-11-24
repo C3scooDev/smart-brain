@@ -276,3 +276,45 @@ h3 { font-size: 1rem; margin-bottom: .8rem; }
 @media (max-width: 760px) {
   .nets, .buckets, .growth-box { grid-template-columns: minmax(0, 1fr); }
 }
+
+/* use cases */
+.usecases { width: min(820px, 100%); display: flex; flex-direction: column; align-items: center; gap: 14px; }
+.usecases .tabs { flex-wrap: wrap; justify-content: center; border-radius: 16px; }
+.phone.wide { width: 100%; }
+.bubble .pre { white-space: pre-line; }
+.bubble.sys { align-self: center; font-size: .8rem; color: var(--muted); border: 1px dashed var(--line); background: none; text-align: center; }
+.bubble.lock { align-self: flex-start; background: #241616; border: 1px solid #7a3b3b; color: #f0b4b4; }
+
+/* try it */
+.tryit { width: min(760px, 100%); display: flex; flex-direction: column; gap: 12px; }
+.ask-form { display: flex; gap: 8px; }
+.ask-form input { flex: 1; min-width: 0; background: var(--panel); border: 1px solid var(--line); border-radius: 10px; padding: 12px 14px; color: var(--fg); font: inherit; }
+.ask-form input:focus { outline: none; border-color: var(--accent); }
+.go { background: var(--accent); color: var(--bg); border: 0; border-radius: 10px; padding: 0 18px; font-weight: 600; }
+.picks.row { flex-direction: row; flex-wrap: wrap; }
+.picks.row .pick { font-size: .8rem; padding: 6px 10px; }
+.trace { display: flex; flex-direction: column; gap: 6px; min-height: 280px; }
+.trow { --c: var(--accent); display: grid; grid-template-columns: 130px minmax(0, 1fr) 70px; gap: 10px; align-items: center; padding: 8px 12px; background: var(--panel); border: 1px solid var(--line); border-left: 3px solid var(--line); border-radius: 8px; font-size: .88rem; animation: pop .3s; transition: border-color .3s; }
+.trow.done { border-left-color: var(--c); }
+.trow .tl { font-family: var(--mono); color: var(--muted); font-size: .78rem; }
+.trow.done .val { color: var(--c); }
+.trow .tms { font-family: var(--mono); font-size: .75rem; color: var(--muted); text-align: right; }
+
+/* growth */
+.growth-scene { width: 100%; display: grid; grid-template-columns: minmax(0, 1.2fr) minmax(0, 1fr); gap: 16px; align-items: start; }
+.gitlog { padding: 12px 16px; height: 300px; overflow: hidden; display: flex; flex-direction: column; gap: 4px; font-family: var(--mono); font-size: .78rem; }
+.commit { animation: pop .4s; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.commit .sha { color: #e8b86b; }
+.pages-head b { font-family: var(--mono); color: var(--accent); font-size: 1.6rem; }
+.pages { display: grid; grid-template-columns: repeat(10, 1fr); gap: 5px; margin: 10px 0; max-width: 420px; }
+.page { aspect-ratio: 3 / 4; border-radius: 3px; opacity: .1; transition: opacity .5s, transform .5s; }
+.page.on { opacity: .85; }
+.page.new { animation: born .8s ease; }
+@keyframes born { from { transform: scale(.2) rotate(-10deg); opacity: 0; } }
+.legend.row { flex-direction: row; flex-wrap: wrap; gap: 10px; }
+
+@media (max-width: 760px) {
+  .growth-scene { grid-template-columns: minmax(0, 1fr); }
+  .trow { grid-template-columns: 100px minmax(0, 1fr); }
+  .trow .tms { display: none; }
+}

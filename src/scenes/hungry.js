@@ -50,7 +50,7 @@ export default function hungry(root) {
   const g = chart();
   const kpis = [["domande senza risposta", 31, 9, "%"], ["giorni per arrivare all'80%", 21, 6, ""], ["istinti salvati a settimana", 4, 23, ""]]
     .map(([label, from, to, suf]) => ({ el: h("div.kpi", {}, h("span.dim", {}, label), h("span", {}, h("s.dim", {}, `${from}${suf}`), " → ", h("b", {}, `0${suf}`))), to, suf }));
-  box.append(h("div.growth-box", {}, h("div", {}, h("h3", {}, "Quanto risponde il brain dalla sua memoria"), g.svg), h("div.kpis", {}, kpis.map((k) => k.el))));
+  box.append(h("div.growth-box", {}, h("div", {}, h("h3", {}, "Quanto risponde il brain dalla sua memoria"), g.svg, h("p.foot", {}, "Valori illustrativi.")), h("div.kpis", {}, kpis.map((k) => k.el))));
   const fill = side.querySelector(".fill"), pct = side.querySelector(".pct");
   fill.style.width = "62%";
 
