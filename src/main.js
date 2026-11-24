@@ -39,7 +39,8 @@ for (const s of scenes) {
 
 const io = new IntersectionObserver((entries) => {
   for (const e of entries) {
-    if (!e.isIntersecting) continue;
+    // tall scenes never reach the ratio on a phone: half a screen of them counts as in view
+    if (!e.isIntersecting || (e.intersectionRatio < 0.35 && e.intersectionRect.height < innerHeight * 0.5)) continue;
     const s = e.target;
     const first = !s.classList.contains("in");
     s.classList.add("in");
@@ -47,5 +48,5 @@ const io = new IntersectionObserver((entries) => {
     nav.querySelectorAll("a").forEach((a, j) => a.classList.toggle("on", i === j));
     if (first) players.get(s)?.();
   }
-}, { threshold: 0.35 });
+}, { threshold: [0, 0.1, 0.2, 0.35, 0.5] });
 scenes.forEach((s) => io.observe(s));
